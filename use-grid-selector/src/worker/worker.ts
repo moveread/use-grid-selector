@@ -49,8 +49,10 @@ export function onMessage(cv: Cv, log?: Console['debug']) {
     const to = config?.to ?? model.boxPositions.length
 
     for (const idx of range(from, to)) {
+      debug?.('Extracting box', idx)
       const p = model.boxPositions[idx]
       const [x, y] = vec.add(vec.prod(p, size), tl)
+      debug?.('Box position', x, y)
       const box = roi(mat, { tl: [x, y], size: boxSize }, config?.pads)
       yield await io.writeBlob(box)
     }

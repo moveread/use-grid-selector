@@ -15,7 +15,7 @@ export type ExtractBoxes = {
   coords: Rectangle
   modelId: ModelID
   imgId: any
-  config: ExtractConfig
+  config?: ExtractConfig
 }
 
 export type ExtractConfig = {
@@ -38,7 +38,7 @@ export type ExtractAPI = {
    * - `[config.from, config.to)`: range of box indices to extract
    * - `config.pads`: relative paddings (to the box size)
    */
-  extract(img: string | Blob, modelId: ModelID, coords: Rectangle, config: ExtractConfig): AsyncIterable<Blob>
+  extract(img: string | Blob, modelId: ModelID, coords: Rectangle, config?: ExtractConfig): AsyncIterable<Blob>
 }
 
 /** Prepares worker by setting `worker.onmessage`. Do not modify it after preparing! */

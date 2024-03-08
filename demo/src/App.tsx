@@ -1,4 +1,4 @@
-import { Coords, useGridSelector, Vec2 } from 'use-grid-selector'
+import { Rectangle, useGridSelector, Vec2 } from 'use-grid-selector'
 import { grid, models } from 'scoresheet-models'
 import { Box, Button, ButtonGroup, HStack, Image, SimpleGrid, Text, VStack } from '@chakra-ui/react'
 import { useEffect, useRef, useState } from 'react'
@@ -10,7 +10,7 @@ const printVec = ([x, y]: Vec2, precision = 2) => `(${x.toFixed(precision)}, ${y
 const worker = new Worker(new URL('./util/worker.ts', import.meta.url), { type: 'module' })
 const api = prepareWorker(worker)
 
-const startCoords: Coords = {
+const startCoords: Rectangle = {
   tl: [0.04, 0.195],
   size: [0.95, 0.67]
 }
@@ -18,7 +18,7 @@ const startCoords: Coords = {
 function App() {
   const src = '/images/models/fcde/l.jpg'
   const { ref, coords } = useGridSelector(src, grid(models.fcde), { startCoords })
-  const [{ tl, size }, setCoords] = useState<Coords>(startCoords)
+  const [{ tl, size }, setCoords] = useState<Rectangle>(startCoords)
   const [imgs, setImgs] = useState<string[]>([])
   const posted = useRef(managedPromise<void>())
 
@@ -30,7 +30,7 @@ function App() {
     setImgs([])
     await posted.current
     console.time('Extract')
-    for await (const r of api.extract(src, 'fcde', coords(), {to: 16})) {
+    for await (const r of api.extract(src, 'fcde', coords())) {
       setImgs(ims => [...ims, URL.createObjectURL(r)])
     }
     console.timeEnd('Extract')

@@ -3501,10 +3501,10 @@ use-fabric@^1.1.4:
   resolved "https://registry.yarnpkg.com/use-fabric/-/use-fabric-1.1.4.tgz#c951d621817ec9e5d05c0107d9fa869dd4cc7410"
   integrity sha512-kstDwJjdVLaPE9DV01CoAjBhWNzj69R6Ctk3Vj7NArnRXOSwT1CVLAJuNUSwYEX1hjZIVcd95ByoHRQDryKr/w==
 
-use-grid-selector@^1.1.11:
-  version "1.1.11"
-  resolved "https://registry.yarnpkg.com/use-grid-selector/-/use-grid-selector-1.1.11.tgz#258007edfcc34b7c81fac68d52bde50fd5a94756"
-  integrity sha512-sDlqsVKZ+CzBMt7OAlaCHKEmF+G91juZzFZQvvK8GxBfc7DSJ0KaIjBbicMoVI2jdO2i+zjWFUPfG6R9H0ppKQ==
+use-grid-selector@^1.1.14:
+  version "1.1.14"
+  resolved "https://registry.yarnpkg.com/use-grid-selector/-/use-grid-selector-1.1.14.tgz#d5a0b178eea806d9f63030beaa93c7f9e84bb8b8"
+  integrity sha512-x/QuWWEHgQ9xvDIAztzfUXpwQk02ZBeDzYSzEdu/WJQYWk/hPqX/3PRCpMBv0yAffLpGOuvvpNqhjzJBowO2nQ==
   dependencies:
     promises-tk "^1.0.0"
     react "^18.2.0"
