@@ -1,0 +1,22 @@
+{
+    "name": "@moveread/package_name",
+    "version": "1.0.0",
+    "description": "package_description",
+    "main": "dist/index.js",
+    "scripts": {
+        "build": "npx tsc -p tsconfig.json"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/moveread/REPO.git"
+    },
+    "author": "Marcel Claramunt",
+    "license": "ISC",
+    "devDependencies": {
+        "typescript": "^5.3.2",
+        "@typescript-eslint/eslint-plugin": "^6.21.0",
+        "@typescript-eslint/parser": "^6.21.0",
+        "eslint": "^8.56.0",
+        "eslint-plugin-react-hooks": "^4.6.0"
+    }
+}
