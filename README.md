@@ -47,7 +47,7 @@ return (
     const modelId = 'fcde'
     const { ref, coords } = useGridSelector(img, grid(models[modelId]))
     function initialize() {
-      api.postImg(img) // not necessary, but makes subsequen calls faster
+      api.postImg(img) // not necessary, but makes subsequent calls faster
     }
     async function extract() {
       for await (const blob of api.extract(img, modelId, coords()))
