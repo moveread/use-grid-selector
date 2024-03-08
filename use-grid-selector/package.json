@@ -5,6 +5,10 @@
     "scripts": {
         "build": "npx tsc -p tsconfig.json"
     },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/moveread/use-grid-selector"
+    },
     "type": "module",
     "author": "Marcel Claramunt",
     "license": "ISC",

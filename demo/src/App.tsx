@@ -16,7 +16,7 @@ const startCoords: Rectangle = {
 }
 
 function App() {
-  const src = '/sheet.jpg'
+  const src = import.meta.env.BASE_URL + '/sheet.jpg'
   const { ref, coords } = useGridSelector(src, grid(models.fcde), { startCoords })
   const [{ tl, size }, setCoords] = useState<Rectangle>(startCoords)
   const [imgs, setImgs] = useState<string[]>([])
