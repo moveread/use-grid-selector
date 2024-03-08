@@ -58,6 +58,25 @@ const defaultCfg: Required<Config> = {
 }
 const defaultSize: Vec2 = [300, 400]
 
+/**
+ * Simple, mobile-friendly, customizable grid selector
+ * 
+ * - `src`: image to load
+ * - `template`: grid to render
+ * - `config`:
+ * - `startCoords`: starting corner coords (relative to the image size)
+ * - `pads`: relative pads to add around the image
+ * - `grid`: customize the generated grid SVG
+ * - `canvas`: passed to new fabric.Canvas
+ * - `topBias`/`leftBias`: since on mobile it's more difficult to drag near the top/left, we default to biasing corners at the top/left being selected
+ *    - To decide which corner to drag, we consider:
+ *        - Cursor position `(x, y)`
+ *        - Image dimensions `w, h`
+ *        - `leftBias, topBias`
+ *        - Corner positions
+ *    - **The chosen corner is the closest to `(x - w*leftBias, y - h*topBias)`**
+ *    - Consider using a negative `leftBias` for left-handed mode
+ */
 export function useGridSelector(src: string, template: Template, config?: Config): Hook {
   
   const {
