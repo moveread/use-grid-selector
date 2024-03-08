@@ -1,1 +1,0 @@
-export * as vec from './vectors'

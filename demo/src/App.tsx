@@ -1,13 +1,13 @@
 import { Rectangle, useGridSelector, Vec2 } from 'use-grid-selector'
 import { grid, models } from 'scoresheet-models'
-import { Box, Button, ButtonGroup, HStack, Image, SimpleGrid, Text, VStack } from '@chakra-ui/react'
+import { ButtonGroup, Button, HStack, Image, SimpleGrid, Text, VStack } from '@chakra-ui/react'
 import { useEffect, useRef, useState } from 'react'
 import { managedPromise } from 'promises-tk'
 import { prepareWorker } from 'use-grid-selector/worker'
 
 const printVec = ([x, y]: Vec2, precision = 2) => `(${x.toFixed(precision)}, ${y.toFixed(precision)})`
 
-const worker = new Worker(new URL('./util/worker.ts', import.meta.url), { type: 'module' })
+const worker = new Worker(new URL('worker.ts', import.meta.url), { type: 'module' })
 const api = prepareWorker(worker)
 
 const startCoords: Rectangle = {
