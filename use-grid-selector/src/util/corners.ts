@@ -1,4 +1,4 @@
-import { Vec2 } from "..";
+import { Vec2 } from "./vectors.js";
 
 /** `[[tl, bl], [tr, br]]`
  * - I.e. `(0, 0) = tl, (1, 0) = tr, (0, 1) = bl, (1, 1) = br` */

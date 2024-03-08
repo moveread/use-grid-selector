@@ -1,6 +1,15 @@
 # Build, increment patch number and publish
 patch:
-  yarn build && yarn version --patch && npm publish
+  rm -dr dist || :
+  yarn run build
+  yarn version --patch
+  @just copy
+  cd dist && npm publish
+
+copy:
+  cp package.json dist
+  cp tsconfig.json dist
+  cp README.md dist
 
 # Install a package as both --dev and --peer
 extra PACKAGE:

@@ -1,4 +1,4 @@
-export { useGridSelector } from './selector'
-export type { Rect as Coords, Template } from './types'
-export type { Vec2 } from './util/vectors'
-export { gridSVG, gridUrl, SvgGrid } from './util/SvgGrid'
+export { useGridSelector } from './selector.js'
+export type { Rectangle, Template } from './types.js'
+export type { Vec2 } from './util/vectors.js'
+export { gridSVG, gridUrl, SvgGrid } from './util/SvgGrid.js'

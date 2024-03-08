@@ -2,13 +2,13 @@
 
 import { Cv, Mat } from "use-cv";
 import { io } from 'opencv-tools'
-import { Action, ExtractBoxes, PostImage } from "./api";
-import * as vec from "../util/vectors";
+import { Action, ExtractBoxes, PostImage } from "./api.js";
+import * as vec from "../util/vectors.js";
 import * as sm from 'scoresheet-models'
 import { range } from 'ramda'
-import { roi } from "../util/extract";
+import { roi } from "../util/extract.js";
 
-export function onmessage(cv: Cv, log?: Console['debug']) {
+export function onMessage(cv: Cv, log?: Console['debug']) {
 
   const debug = log && ((...data: any[]) => log('[WORKER]:', ...data))
 
@@ -19,7 +19,7 @@ export function onmessage(cv: Cv, log?: Console['debug']) {
     }
   })
 
-  const images: Map<string, Mat> = new Map();
+  const images: Map<any, Mat> = new Map();
 
   async function setImage({ img, imgId }: PostImage): Promise<boolean> {
     const blob = typeof img === 'string' ? await fetch(img).then(r => r.blob()) : img
@@ -27,12 +27,13 @@ export function onmessage(cv: Cv, log?: Console['debug']) {
     if (!data)
       return false
     const mat = cv.matFromImageData(data)
+    debug?.('Stored new image', imgId)
     images.set(imgId, mat)
     return true
   }
 
-  async function* extractBoxes({ modelId, coords, config }: ExtractBoxes) {
-    const mat = images.get(config.imgId)
+  async function* extractBoxes({ imgId, modelId, coords, config }: ExtractBoxes) {
+    const mat = images.get(imgId)
     if (!mat) {
       yield null
       return
@@ -56,6 +57,7 @@ export function onmessage(cv: Cv, log?: Console['debug']) {
   }
 
   async function onmessage(e: MessageEvent<Action>) {
+    debug?.('Received message', e.data)
     await loaded
     if (e.data.action === 'post-img') {
       const succeeded = await setImage(e.data)

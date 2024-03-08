@@ -1,5 +1,4 @@
-import { Model } from 'scoresheet-models'
-import { Rectangle } from '../types'
+import { Rectangle } from '../types.js'
 import { Mat, Rect } from 'use-cv'
 
 export type Paddings = {

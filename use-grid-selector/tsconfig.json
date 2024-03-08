@@ -8,7 +8,8 @@
     "jsx": "react",                                /* Specify what JSX code is generated. */
 
     /* Modules */
-    "module": "commonjs",                                /* Specify what module code is generated. */
+    "module": "NodeNext",                                /* Specify what module code is generated. */
+    "moduleResolution": "NodeNext",
 
     /* Emit */
     "declaration": true,                              /* Generate .d.ts files from TypeScript and JavaScript files in your project. */
@@ -23,8 +24,8 @@
     "skipLibCheck": true,                                 /* Skip type checking all .d.ts files. */
 
     "paths": {
-      "opencv-tools": ["/home/m4rs/mr-github/lib/js/cv/opencv-tools/src"],
-      "scoresheet-models": ["/home/m4rs/mr-github/lib/js/cv/scoresheet-models/src"]
+      // "opencv-tools": ["/home/m4rs/mr-github/lib/js/cv/opencv-tools/src"],
+      // "scoresheet-models": ["/home/m4rs/mr-github/lib/js/cv/scoresheet-models/src"]
     }
   },
   "include": ["./src"]

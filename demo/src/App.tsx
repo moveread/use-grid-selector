@@ -3,9 +3,7 @@ import { grid, models } from 'scoresheet-models'
 import { Box, Button, ButtonGroup, HStack, Image, SimpleGrid, Text, VStack } from '@chakra-ui/react'
 import { useEffect, useRef, useState } from 'react'
 import { managedPromise } from 'promises-tk'
-import { Message, prepareWorker } from './util/types'
-import { SerializedImg } from '../../../../cv/opencv-tools/src/workers'
-import { cvtools, workers } from 'opencv-tools'
+import { prepareWorker } from 'use-grid-selector/worker'
 
 const printVec = ([x, y]: Vec2, precision = 2) => `(${x.toFixed(precision)}, ${y.toFixed(precision)})`
 
@@ -31,9 +29,11 @@ function App() {
   async function extract() {
     setImgs([])
     await posted.current
-    for await (const r of api.extract('fcde', coords(), {return: 'url', to: 16})) {
-      setImgs(ims => [...ims, r])
+    console.time('Extract')
+    for await (const r of api.extract(src, 'fcde', coords(), {to: 16})) {
+      setImgs(ims => [...ims, URL.createObjectURL(r)])
     }
+    console.timeEnd('Extract')
   }
 
   return (

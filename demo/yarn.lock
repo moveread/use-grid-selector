@@ -2888,6 +2888,11 @@ once@^1.3.0, once@^1.3.1:
   dependencies:
     wrappy "1"
 
+opencv-tools@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/opencv-tools/-/opencv-tools-1.1.1.tgz#cfa30c084f3fd3b045b9c8bbbf55e12299c1d506"
+  integrity sha512-yfmSu1RzQAoUh+AYYgdHHJEYuRGG2dxpHCnWYhdGjSZwGM4gsMZ4P0TOKZkvKdnkzGc64vOI5od+PoXzndfKdg==
+
 opencv-ts@^1.3.6:
   version "1.3.6"
   resolved "https://registry.yarnpkg.com/opencv-ts/-/opencv-ts-1.3.6.tgz#2242f2c051be272861edc8d7d6ab18b590f842f3"
@@ -2992,12 +2997,7 @@ prelude-ls@^1.2.1:
   resolved "https://registry.yarnpkg.com/prelude-ls/-/prelude-ls-1.2.1.tgz#debc6489d7a6e6b0e7611888cec880337d316396"
   integrity sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==
 
-promises-tk@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/promises-tk/-/promises-tk-1.0.0.tgz#dd8c2d7a562c69222fa835ba5d18a7bdf0601c23"
-  integrity sha512-VlpVOngbSs1gAV4GVQCr4i819DAEkk3yfoDldLx5vB3lje/JpytLGLw1+JYduaUSHGAxu7ETDGrhAOGqYzSMJA==
-
-promises-tk@^1.0.1:
+promises-tk@^1.0.0, promises-tk@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/promises-tk/-/promises-tk-1.0.1.tgz#e36c72e9e338fcfddcb9dda23f16c5f49f3666bb"
   integrity sha512-/rVQfPKUoNzBM2kyKFONU0+NmPQzXdIf8jAmUhWk1UJQ9r6xW+ZAZ/niTnoRERwjhxXx1c/GvNHMYCCn6MzfNA==
@@ -3210,6 +3210,16 @@ scheduler@^0.23.0:
   integrity sha512-CtuThmgHNg7zIZWAXi3AsyIzA3n4xx7aNyjwC2VJldO2LMVDhFK+63xGqq6CsJH4rTAt6/M+N4GhZiDYPx9eUw==
   dependencies:
     loose-envify "^1.1.0"
+
+scoresheet-models@0.1.5:
+  version "0.1.5"
+  resolved "https://registry.yarnpkg.com/scoresheet-models/-/scoresheet-models-0.1.5.tgz#e7dccfe84b0b18dc3d6f8cb7d1249b0cf2c60813"
+  integrity sha512-7IP+zMuLnF6qPxO0zypxhQ0gNlnKYdlCA7cQR8GV0ahEy43Mmv2Ity86bcoP2UOA/GXQYT8BGvKqj84z6sd17g==
+
+scoresheet-models@^0.1.3:
+  version "0.1.3"
+  resolved "https://registry.yarnpkg.com/scoresheet-models/-/scoresheet-models-0.1.3.tgz#f70de8553e2d7b53c681d64fb6477f7817cd6de1"
+  integrity sha512-THOvuIIoxFa8fM/ugljixh8jI3OQE2zNy/xW8eCyi+Xq5HPKcgpTtZNgc48xV7IYJzvw9UqH9hZsVwXJWDdBrQ==
 
 semver@^6.0.0, semver@^6.3.1:
   version "6.3.1"
@@ -3491,14 +3501,15 @@ use-fabric@^1.1.4:
   resolved "https://registry.yarnpkg.com/use-fabric/-/use-fabric-1.1.4.tgz#c951d621817ec9e5d05c0107d9fa869dd4cc7410"
   integrity sha512-kstDwJjdVLaPE9DV01CoAjBhWNzj69R6Ctk3Vj7NArnRXOSwT1CVLAJuNUSwYEX1hjZIVcd95ByoHRQDryKr/w==
 
-use-grid-selector@^1.1.9:
-  version "1.1.9"
-  resolved "https://registry.yarnpkg.com/use-grid-selector/-/use-grid-selector-1.1.9.tgz#099c1ef2f98e197fa985a913d5d99654bafeaf9d"
-  integrity sha512-QqfwPEBeT2xhA5XubfhZjvkwrRvRkd3kGxPwtK6aXw9pXJLZXS6hlq+kffCgO5/wjzD9/xJSXxKg2/V6Z/oUTQ==
+use-grid-selector@^1.1.11:
+  version "1.1.11"
+  resolved "https://registry.yarnpkg.com/use-grid-selector/-/use-grid-selector-1.1.11.tgz#258007edfcc34b7c81fac68d52bde50fd5a94756"
+  integrity sha512-sDlqsVKZ+CzBMt7OAlaCHKEmF+G91juZzFZQvvK8GxBfc7DSJ0KaIjBbicMoVI2jdO2i+zjWFUPfG6R9H0ppKQ==
   dependencies:
     promises-tk "^1.0.0"
     react "^18.2.0"
     react-dom "^18.2.0"
+    scoresheet-models "0.1.5"
     use-fabric "^1.1.4"
 
 use-sidecar@^1.1.2:

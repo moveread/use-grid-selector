@@ -1,4 +1,4 @@
-import { Vec2 } from "./util/vectors"
+import { Vec2 } from "./util/vectors.js"
 
 export type Rectangle = {
   tl: Vec2,

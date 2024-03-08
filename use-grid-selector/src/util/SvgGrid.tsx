@@ -1,6 +1,6 @@
 import React, { SVGProps } from "react"
-import { Vec2 } from "./vectors"
-import { Template } from "../types"
+import { Vec2 } from "./vectors.js"
+import { Template } from "../types.js"
 import { renderToStaticMarkup } from "react-dom/server"
 
 type Props = SVGProps<SVGSVGElement> & {

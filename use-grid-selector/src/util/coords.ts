@@ -1,5 +1,5 @@
 import { fabric } from "fabric"
-import { Vec2, prod, add, clamp } from "./vectors"
+import { Vec2, prod, add, clamp } from "./vectors.js"
 
 export const width = (obj: fabric.Object) => obj.get('width')! * obj.get('scaleX')!
 export const height = (obj: fabric.Object) => obj.get('height')! * obj.get('scaleY')!

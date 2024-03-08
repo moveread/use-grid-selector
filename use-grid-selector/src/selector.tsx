@@ -1,14 +1,14 @@
 import { RefCallback, SVGProps, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { fabric } from 'fabric'
 import { useFabric } from 'use-fabric'
-import * as obj from './util/coords';
-import * as vec from './util/vectors';
-import { Vec2 } from './util/vectors';
-import { Rect, Pads, Template } from './types';
-import { argminBy2 } from './util/arrays';
-import * as crn from './util/corners';
-import { RectCorners } from './util/corners';
-import { gridUrl } from './util/SvgGrid';
+import * as obj from './util/coords.js';
+import * as vec from './util/vectors.js';
+import { Vec2 } from './util/vectors.js';
+import { Rectangle, Pads, Template } from './types.js';
+import { argminBy2 } from './util/arrays.js';
+import * as crn from './util/corners.js';
+import { RectCorners } from './util/corners.js';
+import { gridUrl } from './util/SvgGrid.js';
 import { managedPromise } from 'promises-tk'
 
 export type CornerOptions = Omit<fabric.ICircleOptions, 'left' | 'top' | 'originX' | 'originY' | 'hasControls'> & {
@@ -21,12 +21,12 @@ const corner = (v: Vec2, params?: CornerOptions) => new fabric.Circle({
 
 export type Hook = {
   ref: RefCallback<HTMLCanvasElement>
-  coords(): Rect
+  coords(): Rectangle
   animate: { loaded: false } | ({
     loaded: true
   } & Animate)
 }
-export type Animate = (coords: Partial<Rect>, config?: AnimationConfig) => Promise<void>
+export type Animate = (coords: Partial<Rectangle>, config?: AnimationConfig) => Promise<void>
 export type AnimationConfig = Omit<fabric.IAnimationOptions, 'onChange' | 'onComplete'>
 
 export type GridConfig = {
@@ -36,7 +36,7 @@ export type GridConfig = {
 
 export type Config = {
   pads?: Pads
-  startCoords?: Rect
+  startCoords?: Rectangle
   grid?: GridConfig
   canvas?: fabric.ICanvasOptions
   cornerOptions?: CornerOptions
@@ -208,7 +208,7 @@ export function useGridSelector(src: string, template: Template, config?: Config
   }, [initSheet, src])
 
   /** Coords of `templ` relative to `sheet` */
-  function computeCoords(): Rect {
+  function computeCoords(): Rectangle {
     const templ = templateRef.current!; // [Tp, Ts] = [position (top left), size]
     const sheet = sheetRef.current!;    // [Sp, Ss]
     // Tp' = (Tp - Sp) / Ss
@@ -221,7 +221,7 @@ export function useGridSelector(src: string, template: Template, config?: Config
     return { tl, size };
   }
 
-  const animate = useCallback(({ tl, size }: Partial<Rect>, config?: AnimationConfig) => {
+  const animate = useCallback(({ tl, size }: Partial<Rectangle>, config?: AnimationConfig) => {
     const promise = managedPromise()
     const corners = cornersRef.current
     const templ = templateRef.current
