@@ -20,7 +20,7 @@ export default defineConfig({
       },
     },
   },
-  base: '/', // change if you're deploying to github pages
+  base: '/use-grid-selector', // change if you're deploying to github pages
   resolve: {
     preserveSymlinks: true // necessary for yarn link to work
   }
