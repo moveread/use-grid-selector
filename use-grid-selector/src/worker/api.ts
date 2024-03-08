@@ -42,8 +42,10 @@ export type ExtractAPI = {
 }
 
 /** Prepares worker by setting `worker.onmessage`. Do not modify it after preparing! */
-export function prepareWorker(worker: Worker): ExtractAPI {
+export function prepareWorker(worker: Worker, log?: Console['debug']): ExtractAPI {
   
+  const debug = log && ((...xs) => log('[ExtractAPI]:', ...xs))
+
   let counter = 0
   const imgIDs = new Map<Blob|string, number>()
 
@@ -61,7 +63,7 @@ export function prepareWorker(worker: Worker): ExtractAPI {
   async function postNewImg(img: string | Blob): Promise<number|null> {
     postPromise = managedPromise()
     const imgId = counter++
-    console.debug(`New image. ID = ${imgId}. Src:`, img)
+    debug?.(`New image. ID = ${imgId}. Src:`, img)
     imgIDs.set(img, imgId)
     const msg: PostImage = { img, imgId, action: 'post-img' }
     worker.postMessage(msg)
@@ -81,11 +83,11 @@ export function prepareWorker(worker: Worker): ExtractAPI {
       const imgId = imgIDs.get(img) ?? await postNewImg(img)
       if (imgId === null)
         return
-      console.debug('Extracting image', imgId)
+      debug?.('Extracting image', imgId)
       const msg: ExtractBoxes = { imgId, modelId, coords, config, action: 'extract-boxes' }
       worker.postMessage(msg)
       for await (const x of extractStream) {
-        console.debug('Extract result', x)
+        debug?.('Extract result', x)
         if (x === null)
           return
         yield x
