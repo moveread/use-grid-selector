@@ -1,6 +1,6 @@
 import { Vec2 } from "./util/vectors"
 
-export type Coords = {
+export type Rectangle = {
   tl: Vec2,
   size: Vec2
 }

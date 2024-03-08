@@ -8,7 +8,7 @@ import { Vec2 } from './vectors'
 import { range } from 'ramda'
 import { read, write } from './io'
 
-const debug = (...data: any[]) => console.debug('[WORKER]:', ...data)
+const debug = (...data) => console.debug('[WORKER]:', ...data)
 
 const loaded: Promise<void> = new Promise(resolve => {
   cv.onRuntimeInitialized = () => {
@@ -55,7 +55,10 @@ async function extractBoxes({ modelId, imgId, coords, config }: ExtractBoxes) {
   for (const idx of range(from, to)) {
     const p = model.boxPositions[idx]
     const [x, y] = vec.add(vec.prod(p, size), tl) // rescaled and translated
-    const rect = new cv.Rect(x-l*boxW, y-t*boxH, (1+l+r)*boxW, (1+t+b)*boxH)
+    const rect = {
+      x: x-l*boxW, y: y-t*boxH,
+      width: (1+l+r)*boxW, height: (1+t+b)*boxH
+    } as Rect
     const roi = mat.roi(rect).clone() // IMPORTANT: must clone to make the data continuous!
     console.assert(roi.isContinuous(), 'Error: ROI image not continuous')
     const thenBlob = write(roi)

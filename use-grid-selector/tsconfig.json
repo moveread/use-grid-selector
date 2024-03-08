@@ -3,7 +3,7 @@
     /* Visit https://aka.ms/tsconfig to read more about this file */
 
     /* Language and Environment */
-    "target": "es2016",                                  /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
+    "target": "es2018",                                  /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
     // "lib": [],                                        /* Specify a set of bundled library declaration files that describe the target runtime environment. */
     "jsx": "react",                                /* Specify what JSX code is generated. */
 
@@ -20,7 +20,12 @@
     /* Type Checking */
     "strict": true,                                      /* Enable all strict type-checking options. */
     "noImplicitAny": false,                            /* Enable error reporting for expressions and declarations with an implied 'any' type. */
-    "skipLibCheck": true                                 /* Skip type checking all .d.ts files. */
+    "skipLibCheck": true,                                 /* Skip type checking all .d.ts files. */
+
+    "paths": {
+      "opencv-tools": ["/home/m4rs/mr-github/lib/js/cv/opencv-tools/src"],
+      "scoresheet-models": ["/home/m4rs/mr-github/lib/js/cv/scoresheet-models/src"]
+    }
   },
   "include": ["./src"]
 }

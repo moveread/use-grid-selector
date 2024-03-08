@@ -4,7 +4,7 @@ import { useFabric } from 'use-fabric'
 import * as obj from './util/coords';
 import * as vec from './util/vectors';
 import { Vec2 } from './util/vectors';
-import { Coords, Pads, Template } from './types';
+import { Rect, Pads, Template } from './types';
 import { argminBy2 } from './util/arrays';
 import * as crn from './util/corners';
 import { RectCorners } from './util/corners';
@@ -21,12 +21,12 @@ const corner = (v: Vec2, params?: CornerOptions) => new fabric.Circle({
 
 export type Hook = {
   ref: RefCallback<HTMLCanvasElement>
-  coords(): Coords
+  coords(): Rect
   animate: { loaded: false } | ({
     loaded: true
   } & Animate)
 }
-export type Animate = (coords: Partial<Coords>, config?: AnimationConfig) => Promise<void>
+export type Animate = (coords: Partial<Rect>, config?: AnimationConfig) => Promise<void>
 export type AnimationConfig = Omit<fabric.IAnimationOptions, 'onChange' | 'onComplete'>
 
 export type GridConfig = {
@@ -36,7 +36,7 @@ export type GridConfig = {
 
 export type Config = {
   pads?: Pads
-  startCoords?: Coords
+  startCoords?: Rect
   grid?: GridConfig
   canvas?: fabric.ICanvasOptions
   cornerOptions?: CornerOptions
@@ -208,7 +208,7 @@ export function useGridSelector(src: string, template: Template, config?: Config
   }, [initSheet, src])
 
   /** Coords of `templ` relative to `sheet` */
-  function computeCoords(): Coords {
+  function computeCoords(): Rect {
     const templ = templateRef.current!; // [Tp, Ts] = [position (top left), size]
     const sheet = sheetRef.current!;    // [Sp, Ss]
     // Tp' = (Tp - Sp) / Ss
@@ -221,7 +221,7 @@ export function useGridSelector(src: string, template: Template, config?: Config
     return { tl, size };
   }
 
-  const animate = useCallback(({ tl, size }: Partial<Coords>, config?: AnimationConfig) => {
+  const animate = useCallback(({ tl, size }: Partial<Rect>, config?: AnimationConfig) => {
     const promise = managedPromise()
     const corners = cornersRef.current
     const templ = templateRef.current
