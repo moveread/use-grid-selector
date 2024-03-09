@@ -2,7 +2,7 @@
 
 import { Cv, Mat } from "use-cv";
 import { io } from 'opencv-tools'
-import { Action, Extract, ExtractConfig, PostConfig, PostImage, Response, Return } from "./api.js";
+import { Action, Extract, ExtractConfig, PostConfig, PostImage, Response } from "./api.js";
 import * as vec from "../util/vectors.js";
 import * as sm from 'scoresheet-models'
 import { roi } from "../util/extract.js";

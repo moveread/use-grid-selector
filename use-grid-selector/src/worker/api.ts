@@ -93,6 +93,7 @@ export function prepareWorker(worker: Worker, log?: Console['debug']): ExtractAP
   }
 
   worker.onmessage = async ({ data }: MessageEvent<Response>) => {
+    debug?.('Response received:', data)
     responses[data.action].resolve(data.value as any) // typescript ain't that smart sometimes
   }
 
@@ -105,6 +106,7 @@ export function prepareWorker(worker: Worker, log?: Console['debug']): ExtractAP
     const msg: PostImage = { img, imgId, action: 'post-img' }
     worker.postMessage(msg)
     const succeeded = await responses['post-img']
+    debug?.('Post image', succeeded ? 'succeeded' : 'failed')
     if (!succeeded) {
       imgIDs.delete(img)
       return null
@@ -140,7 +142,9 @@ export function prepareWorker(worker: Worker, log?: Console['debug']): ExtractAP
       debug?.('Extracting box', idx, 'from image', imgId)
       const msg: Extract = { imgId, idx, action: 'extract-box' }
       worker.postMessage(msg)
-      return await responses['extract-box']
+      const result = await responses['extract-box']
+      debug?.('Extracted box', idx, 'from image', imgId)
+      return result
     }
   }
 }

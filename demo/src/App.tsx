@@ -12,7 +12,7 @@ function* range(from: number, to: number) {
 const printVec = ([x, y]: Vec2, precision = 2) => `(${x.toFixed(precision)}, ${y.toFixed(precision)})`
 
 const worker = new Worker(new URL('worker.ts', import.meta.url), { type: 'module' })
-const api = prepareWorker(worker)
+const api = prepareWorker(worker, console.debug.bind(console))
 
 const startCoords: Rectangle = {
   tl: [0.04, 0.195],
@@ -30,23 +30,31 @@ function App() {
   async function prepare() {
     await api.postImg(src)
     ready.current.resolve()
-    // await api.postImg
   }
 
   useEffect(() => { prepare() }, [])
 
   async function extract() {
+    setImgs([])
     const config = { coords: coords(), model: models.fcde }
-    const imgs: string[] = []
+    let results: string[] = []
     await ready.current
     console.time('Extract')
     for (const i of range(0, 150)) {
       const blob = await api.extract(src, i, config)
       if (blob)
-        imgs.push(URL.createObjectURL(blob))
+      results.push(URL.createObjectURL(blob))
+      const mod = 12
+      if (i % mod === mod-1) {
+        const newResults = [...results]
+        setImgs(ims => {
+          return [...ims, ...newResults]
+        })
+        results = []
+      }
     }
     console.timeEnd('Extract')
-    setImgs(imgs)
+    setImgs(ims => [...ims, ...results])
   }
 
   return (
