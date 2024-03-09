@@ -2,10 +2,9 @@
 
 import { Cv, Mat } from "use-cv";
 import { io } from 'opencv-tools'
-import { Action, ExtractBoxes, PostImage } from "./api.js";
+import { Action, Extract, ExtractConfig, PostConfig, PostImage, Response, Return } from "./api.js";
 import * as vec from "../util/vectors.js";
 import * as sm from 'scoresheet-models'
-import { range } from 'ramda'
 import { roi } from "../util/extract.js";
 
 export function onMessage(cv: Cv, log?: Console['debug']) {
@@ -20,6 +19,26 @@ export function onMessage(cv: Cv, log?: Console['debug']) {
   })
 
   const images: Map<any, Mat> = new Map();
+  const configs: Map<any, ExtractConfig> = new Map()
+
+  type ReifiedConfig = {
+    model: sm.ReifiedModel
+    tl: vec.Vec2, size: vec.Vec2, boxSize: vec.Vec2
+  }
+  const cache: Map<any, ReifiedConfig> = new Map()
+
+  function reifiedConfig(mat: Mat, { coords, model }: ExtractConfig): ReifiedConfig {
+    const imgSize: vec.Vec2 = [mat.cols, mat.rows]
+    const tl = vec.prod(coords.tl, imgSize)
+    const size = vec.prod(coords.size, imgSize)
+    const boxSize = vec.prod(sm.boxSize(model), size)
+    return { model: sm.reify(model), boxSize, tl, size }
+  }
+  function reifyConfig(imgId: any, mat: Mat, config: ExtractConfig): ReifiedConfig {
+    const result = reifiedConfig(mat, config)
+    cache.set(imgId, result)
+    return result
+  }
 
   async function setImage({ img, imgId }: PostImage): Promise<boolean> {
     const blob = typeof img === 'string' ? await fetch(img).then(r => r.blob()) : img
@@ -29,47 +48,45 @@ export function onMessage(cv: Cv, log?: Console['debug']) {
     const mat = cv.matFromImageData(data)
     debug?.('Stored new image', imgId)
     images.set(imgId, mat)
+    cache.delete(imgId)
     return true
   }
 
-  async function* extractBoxes({ imgId, modelId, coords, config }: ExtractBoxes) {
+  function setConfig({ config, imgId }: PostConfig) {
+    configs.set(imgId, config)
+    cache.delete(imgId)
+  }
+
+  async function extract({ imgId, idx }: Extract): Promise<Blob|null> {
     const mat = images.get(imgId)
-    if (!mat) {
-      yield null
-      return
-    }
+    const config = configs.get(imgId)
+    if (!mat || !config)
+      return null
 
-    const imgSize: vec.Vec2 = [mat.cols, mat.rows]
-    const model = sm.models[modelId]
-    const tl = vec.prod(coords.tl, imgSize)
-    const size = vec.prod(coords.size, imgSize)
-    const boxSize = vec.prod(sm.boxSize(model), size)
+    const { model, boxSize, size, tl} = cache.get(imgId) ?? reifyConfig(imgId, mat, config)
+    const p = model.boxPositions[idx]
+    const [x, y] = vec.add(vec.prod(p, size), tl)
+    debug?.('Box position', x, y)
+    const box = roi(mat, { tl: [x, y], size: boxSize }, config?.pads)
+    return await io.writeBlob(box)
+  }
 
-    const from = config?.from ?? 0
-    const to = config?.to ?? model.boxPositions.length
-
-    for (const idx of range(from, to)) {
-      debug?.('Extracting box', idx)
-      const p = model.boxPositions[idx]
-      const [x, y] = vec.add(vec.prod(p, size), tl)
-      debug?.('Box position', x, y)
-      const box = roi(mat, { tl: [x, y], size: boxSize }, config?.pads)
-      yield await io.writeBlob(box)
+  async function handle(data: Action): Promise<Response> {
+    const { action } = data
+    switch (action) {
+      case 'post-img':
+        return { action, value: await setImage(data) }
+      case 'post-config':
+        return { action, value: setConfig(data) }
+      case 'extract-box':
+        return { action, value: await extract(data) }
     }
   }
 
-  async function onmessage(e: MessageEvent<Action>) {
-    debug?.('Received message', e.data)
+  async function onmessage({ data }: MessageEvent<Action>) {
+    debug?.('Received message', data)
     await loaded
-    if (e.data.action === 'post-img') {
-      const succeeded = await setImage(e.data)
-      postMessage(succeeded)
-    }
-    else if (e.data.action === 'extract-boxes') {
-      for await (const x of extractBoxes(e.data))
-        postMessage(x)
-      postMessage(null)
-    }
+    postMessage(await handle(data))
   }
 
   return onmessage

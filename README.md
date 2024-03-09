@@ -44,14 +44,26 @@ return (
 
   function MySelector() {
     const img = '/image.jpg'
-    const modelId = 'fcde'
-    const { ref, coords } = useGridSelector(img, grid(models[modelId]))
+    const model = models.fcde // or an arbitrary Model
+    const { ref, coords } = useGridSelector(img, grid(model))
     function initialize() {
       api.postImg(img) // not necessary, but makes subsequent calls faster
     }
     async function extract() {
-      for await (const blob of api.extract(img, modelId, coords()))
-        ...
+      const config = { model, coords: coords() }
+      for (const idx of range(16)) {
+        const blob = await api.extract(img, idx, config)
+      }
     }
   }
+  ```
+
+  You can also pre-post the configuration if you wont change it further:
+
+  ```jsx
+  const CONFIG = { ... }
+  api.postConfig(CONFIG)
+
+  // then always call with
+  api.extract(img, CONFIG)
   ```

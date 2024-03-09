@@ -21,8 +21,8 @@
     "noFallthroughCasesInSwitch": true,
 
     "paths": {
-      // "use-grid-selector/worker": ["/home/m4rs/mr-github/lib/js/ui/use-grid-selector/use-grid-selector/src/worker"],
-      // "use-grid-selector": ["/home/m4rs/mr-github/lib/js/ui/use-grid-selector/use-grid-selector/src"],
+      "use-grid-selector/worker": ["/home/m4rs/mr-github/lib/js/ui/use-grid-selector/use-grid-selector/src/worker"],
+      "use-grid-selector": ["/home/m4rs/mr-github/lib/js/ui/use-grid-selector/use-grid-selector/src"],
       // "opencv-tools": ["/home/m4rs/mr-github/lib/js/cv/opencv-tools/src"],
       // "scoresheet-models": ["/home/m4rs/mr-github/lib/js/cv/scoresheet-models/src"]
     }

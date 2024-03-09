@@ -1,30 +1,46 @@
-import { ModelID } from 'scoresheet-models'
-import { managedAsync, managedPromise } from 'promises-tk'
+import { Model } from 'scoresheet-models'
+import { ManagedPromise, managedPromise } from 'promises-tk'
 import { Rectangle } from '../types.js'
 import { Paddings } from '../util/extract.js'
 
-export type Action = PostImage | ExtractBoxes
+export type Action = PostImage | PostConfig | Extract
 
 export type PostImage = {
   action: 'post-img'
   img: string | Blob
   imgId: any
 } 
-export type ExtractBoxes = {
-  action: 'extract-boxes'
-  coords: Rectangle
-  modelId: ModelID
+export type PostConfig = {
+  action: 'post-config'
+  config: ExtractConfig
   imgId: any
-  config?: ExtractConfig
+}
+export type Extract = {
+  action: 'extract-box'
+  imgId: any
+  idx: number
 }
 
 export type ExtractConfig = {
-  from?: number
-  to?: number
+  model: Model
+  coords: Rectangle
   pads?: Paddings
 }
 
-export type Return<A extends Action> = A extends PostImage ? Promise<boolean> : AsyncIterable<Blob>
+export type Return<A extends Action['action']> =
+  A extends 'post-img' ? Promise<boolean> :
+  A extends 'post-config' ? Promise<void> :
+  Promise<Blob|null>
+
+export type Response = {
+  [A in Action['action']]: {
+    action: A
+    value: Awaited<Return<A>>
+  }
+}[Action['action']]
+export type Responses = {
+  [A in Action['action']]: ManagedPromise<Return<A>>
+}
 
 export type ExtractAPI = {
   /** Optimization: send the image upfront so the first `extract` call doesn't take the extra, significant hit
@@ -33,12 +49,32 @@ export type ExtractAPI = {
    * - Returns whether it succeeds (it may fail, e.g. due to `OffscreenCanvas` not being available)
    */
   postImg(img: string | Blob): Promise<boolean>
-  /** Extract boxes. Requires having posted an image with `postImg` first
-   * - `config.imgId`: must match some id specified in `postImg`,
-   * - `[config.from, config.to)`: range of box indices to extract
-   * - `config.pads`: relative paddings (to the box size)
+  /** Optimization: send the config upfront so the first `extract` call doesn't take the extra, not-so-significant hit
+   * - Also sends `img` if not done already
    */
-  extract(img: string | Blob, modelId: ModelID, coords: Rectangle, config?: ExtractConfig): AsyncIterable<Blob>
+  postConfig(img: string | Blob, config: ExtractConfig): Promise<void>
+  /** Extract box at `idx`
+   * - `config.pads`: relative paddings (to the box size)
+   * 
+   * #### Note on performance
+   * Both `img` (if a `Blob`) and `config` are cached by reference and only sent to the worker once. So, you should prefer:
+   * 
+   * ```jsx
+   * // this
+   * const img: Blob = ...
+   * const config: ExtractConfig = ...
+   * for (const i of range(16))
+   *  imgs.push(await api.extract(img, config))
+   * 
+   * // over defining a new object at every call
+   * for (const i of range(16))
+   *   imgs.push(await api.extract(makeBlob(), { ... }))
+   * ```
+   * 
+   * - Expect a ~40% overhead for sending config anew
+   * - Expect a slowdown of at least an order of magnitude for sending the image anew (depends on the size, ofc)
+   */
+  extract(img: string | Blob, idx: number, config: ExtractConfig): Promise<Blob|null>
 }
 
 /** Prepares worker by setting `worker.onmessage`. Do not modify it after preparing! */
@@ -48,26 +84,27 @@ export function prepareWorker(worker: Worker, log?: Console['debug']): ExtractAP
 
   let counter = 0
   const imgIDs = new Map<Blob|string, number>()
+  const configsCache = new Map<number, ExtractConfig>()
 
-  let postPromise = managedPromise<boolean>()
-  const extractStream = managedAsync<Blob|null>()
+  const responses: Responses = {
+    "post-img": managedPromise(),
+    "post-config": managedPromise(),
+    "extract-box": managedPromise()
+  }
 
-  worker.onmessage = async ({ data }: MessageEvent<Blob|null|boolean>) => {
-    if (typeof data === 'boolean')
-      postPromise.resolve(data)
-    else
-      extractStream.push(data)
+  worker.onmessage = async ({ data }: MessageEvent<Response>) => {
+    responses[data.action].resolve(data.value as any) // typescript ain't that smart sometimes
   }
 
   /** Stores image into `imgIDs`, posts to worker, returns the assigned key */
   async function postNewImg(img: string | Blob): Promise<number|null> {
-    postPromise = managedPromise()
+    responses['post-img'] = managedPromise()
     const imgId = counter++
     debug?.(`New image. ID = ${imgId}. Src:`, img)
     imgIDs.set(img, imgId)
     const msg: PostImage = { img, imgId, action: 'post-img' }
     worker.postMessage(msg)
-    const succeeded = await postPromise
+    const succeeded = await responses['post-img']
     if (!succeeded) {
       imgIDs.delete(img)
       return null
@@ -75,23 +112,35 @@ export function prepareWorker(worker: Worker, log?: Console['debug']): ExtractAP
     return imgId
   }
 
+  async function postConfig(imgId: any, config: ExtractConfig) {
+    responses['post-config'] = managedPromise()
+    debug?.('New config for', imgId, 'Config:', config)
+    const msg: PostConfig = { imgId, config, action: 'post-config' }
+    worker.postMessage(msg)
+    await responses['post-config']
+    configsCache.set(imgId, config)
+  }
+
   return {
     async postImg(img) {
       return (await postNewImg(img)) !== null
     },
-    async * extract(img, modelId, coords, config) {
+    async postConfig(img, config) {
+      const imgId = imgIDs.get(img) ?? await postNewImg(img)
+      if (imgId !== null)
+        await postConfig(imgId, config)
+    },
+    async extract(img, idx, config) {
+      responses['extract-box'] = managedPromise()
       const imgId = imgIDs.get(img) ?? await postNewImg(img)
       if (imgId === null)
-        return
-      debug?.('Extracting image', imgId)
-      const msg: ExtractBoxes = { imgId, modelId, coords, config, action: 'extract-boxes' }
+        return null
+      if (configsCache.get(imgId) !== config)
+        await postConfig(imgId, config)
+      debug?.('Extracting box', idx, 'from image', imgId)
+      const msg: Extract = { imgId, idx, action: 'extract-box' }
       worker.postMessage(msg)
-      for await (const x of extractStream) {
-        debug?.('Extract result', x)
-        if (x === null)
-          return
-        yield x
-      }
+      return await responses['extract-box']
     }
   }
 }
