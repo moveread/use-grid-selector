@@ -77,9 +77,10 @@ export type ExtractAPI = {
   extract(img: string | Blob, idx: number, config: ExtractConfig): Promise<Blob|null>
 }
 
-/** Prepares worker by setting `worker.onmessage`. Do not modify it after preparing! */
-export function prepareWorker(worker: Worker, log?: Console['debug']): ExtractAPI {
-  
+export function makeApi(postMessage: (action: Action) => void, log?: Console['debug']): {
+  api: ExtractAPI
+  onMessage(e: MessageEvent<Response>): void
+} {
   const debug = log && ((...xs) => log('[ExtractAPI]:', ...xs))
 
   let counter = 0
@@ -92,7 +93,7 @@ export function prepareWorker(worker: Worker, log?: Console['debug']): ExtractAP
     "extract-box": managedPromise()
   }
 
-  worker.onmessage = async ({ data }: MessageEvent<Response>) => {
+  const onMessage = ({ data }: MessageEvent<Response>) => {
     debug?.('Response received:', data)
     responses[data.action].resolve(data.value as any) // typescript ain't that smart sometimes
   }
@@ -104,7 +105,7 @@ export function prepareWorker(worker: Worker, log?: Console['debug']): ExtractAP
     debug?.(`New image. ID = ${imgId}. Src:`, img)
     imgIDs.set(img, imgId)
     const msg: PostImage = { img, imgId, action: 'post-img' }
-    worker.postMessage(msg)
+    postMessage(msg)
     const succeeded = await responses['post-img']
     debug?.('Post image', succeeded ? 'succeeded' : 'failed')
     if (!succeeded) {
@@ -118,12 +119,12 @@ export function prepareWorker(worker: Worker, log?: Console['debug']): ExtractAP
     responses['post-config'] = managedPromise()
     debug?.('New config for', imgId, 'Config:', config)
     const msg: PostConfig = { imgId, config, action: 'post-config' }
-    worker.postMessage(msg)
+    postMessage(msg)
     await responses['post-config']
     configsCache.set(imgId, config)
   }
 
-  return {
+  const api: ExtractAPI = {
     async postImg(img) {
       return (await postNewImg(img)) !== null
     },
@@ -141,10 +142,19 @@ export function prepareWorker(worker: Worker, log?: Console['debug']): ExtractAP
         await postConfig(imgId, config)
       debug?.('Extracting box', idx, 'from image', imgId)
       const msg: Extract = { imgId, idx, action: 'extract-box' }
-      worker.postMessage(msg)
+      postMessage(msg)
       const result = await responses['extract-box']
       debug?.('Extracted box', idx, 'from image', imgId)
       return result
     }
   }
+
+  return { onMessage, api }
+}
+
+/** Prepares worker by setting `worker.onmessage`. Do not modify it after preparing! */
+export function prepareWorker(worker: Worker, log?: Console['debug']): ExtractAPI {
+  const { api, onMessage } = makeApi(worker.postMessage.bind(worker), log)
+  worker.onmessage = onMessage
+  return api
 }

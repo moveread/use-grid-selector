@@ -7,7 +7,7 @@ import * as vec from "../util/vectors.js";
 import * as sm from 'scoresheet-models'
 import { roi } from "../util/extract.js";
 
-export function onMessage(cv: Cv, log?: Console['debug']) {
+export function handleMessage(cv: Cv, log?: Console['debug']) {
 
   const debug = log && ((...data: any[]) => log('[WORKER]:', ...data))
 
@@ -72,6 +72,7 @@ export function onMessage(cv: Cv, log?: Console['debug']) {
   }
 
   async function handle(data: Action): Promise<Response> {
+    await loaded
     const { action } = data
     switch (action) {
       case 'post-img':
@@ -83,11 +84,13 @@ export function onMessage(cv: Cv, log?: Console['debug']) {
     }
   }
 
+  return handle
+}
+
+export function onMessage(cv: Cv, log?: Console['debug']) {
+  const handle = handleMessage(cv, log)
   async function onmessage({ data }: MessageEvent<Action>) {
-    debug?.('Received message', data)
-    await loaded
     postMessage(await handle(data))
   }
-
   return onmessage
 }
