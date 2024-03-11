@@ -1,2 +1,2 @@
-export { onMessage, handleMessage } from './worker.js'
-export { prepareWorker, type Action, type ExtractAPI, type ExtractConfig } from './api.js'
+export { onMessage, messageHandler, makeApi as makeWorkerApi } from './worker.js'
+export { makeApi, prepareWorker, type Action, type ExtractAPI, type ExtractConfig, type Response } from './api.js'

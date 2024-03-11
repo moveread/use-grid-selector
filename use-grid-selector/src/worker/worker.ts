@@ -7,7 +7,14 @@ import * as vec from "../util/vectors.js";
 import * as sm from 'scoresheet-models'
 import { roi } from "../util/extract.js";
 
-export function handleMessage(cv: Cv, log?: Console['debug']) {
+export type WorkerAPI = {
+  postImg(a: Omit<PostImage, 'action'>): Promise<boolean>
+  postConfig(a: Omit<PostConfig, 'action'>): void
+  extract(a: Omit<Extract, 'action'>): Promise<Blob|null>
+  configs: ReadonlyMap<any, ExtractConfig>
+}
+
+export function makeApi(cv: Cv, log?: Console['debug']): WorkerAPI {
 
   const debug = log && ((...data: any[]) => log('[WORKER]:', ...data))
 
@@ -40,11 +47,13 @@ export function handleMessage(cv: Cv, log?: Console['debug']) {
     return result
   }
 
-  async function setImage({ img, imgId }: PostImage): Promise<boolean> {
+  async function postImg({ img, imgId }: PostImage): Promise<boolean> {
     const blob = typeof img === 'string' ? await fetch(img).then(r => r.blob()) : img
     const data = await io.read(blob)
     if (!data)
       return false
+    
+    await loaded
     const mat = cv.matFromImageData(data)
     debug?.('Stored new image', imgId)
     images.set(imgId, mat)
@@ -52,7 +61,7 @@ export function handleMessage(cv: Cv, log?: Console['debug']) {
     return true
   }
 
-  function setConfig({ config, imgId }: PostConfig) {
+  function postConfig({ config, imgId }: PostConfig) {
     configs.set(imgId, config)
     cache.delete(imgId)
   }
@@ -71,24 +80,28 @@ export function handleMessage(cv: Cv, log?: Console['debug']) {
     return await io.writeBlob(box)
   }
 
+  return { postImg, postConfig, extract, configs }
+
+}
+
+export function messageHandler({ postImg, postConfig, extract }: WorkerAPI) {
   async function handle(data: Action): Promise<Response> {
-    await loaded
     const { action } = data
     switch (action) {
       case 'post-img':
-        return { action, value: await setImage(data) }
+        return { action, value: await postImg(data) }
       case 'post-config':
-        return { action, value: setConfig(data) }
+        return { action, value: postConfig(data) }
       case 'extract-box':
         return { action, value: await extract(data) }
     }
   }
-
+  
   return handle
 }
 
 export function onMessage(cv: Cv, log?: Console['debug']) {
-  const handle = handleMessage(cv, log)
+  const handle = messageHandler(makeApi(cv, log))
   async function onmessage({ data }: MessageEvent<Action>) {
     postMessage(await handle(data))
   }
