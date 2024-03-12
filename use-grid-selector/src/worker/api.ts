@@ -5,19 +5,17 @@ import { Paddings } from '../util/extract.js'
 
 export type Action = PostImage | PostConfig | Extract
 
-export type PostImage = {
+type BaseParams = { imgId: number, reqId: number }
+export type PostImage = BaseParams & {
   action: 'post-img'
   img: string | Blob
-  imgId: any
 } 
-export type PostConfig = {
+export type PostConfig = BaseParams & {
   action: 'post-config'
   config: ExtractConfig
-  imgId: any
 }
-export type Extract = {
+export type Extract = BaseParams & {
   action: 'extract-box'
-  imgId: any
   idx: number
 }
 
@@ -35,11 +33,12 @@ export type Return<A extends Action['action']> =
 export type Response = {
   [A in Action['action']]: {
     action: A
+    reqId: number
     value: Awaited<Return<A>>
   }
 }[Action['action']]
 export type Responses = {
-  [A in Action['action']]: ManagedPromise<Return<A>>
+  [A in Action['action']]: Map<number, ManagedPromise<Return<A>>>
 }
 
 export type ExtractAPI = {
@@ -83,30 +82,35 @@ export function makeApi(postMessage: (action: Action) => void, log?: Console['de
 } {
   const debug = log && ((...xs) => log('[ExtractAPI]:', ...xs))
 
-  let counter = 0
+  let imgIdCounter = 0
   const imgIDs = new Map<Blob|string, number>()
   const configsCache = new Map<number, ExtractConfig>()
 
   const responses: Responses = {
-    "post-img": managedPromise(),
-    "post-config": managedPromise(),
-    "extract-box": managedPromise()
+    "post-img": new Map(),
+    "post-config": new Map(),
+    "extract-box": new Map(),
   }
+
+  let reqIdCounter = 0
 
   const onMessage = ({ data }: MessageEvent<Response>) => {
     debug?.('Response received:', data)
-    responses[data.action].resolve(data.value as any) // typescript ain't that smart sometimes
+    responses[data.action].get(data.reqId)?.resolve(data.value as any) // typescript ain't that smart sometimes
   }
 
   /** Stores image into `imgIDs`, posts to worker, returns the assigned key */
   async function postNewImg(img: string | Blob): Promise<number|null> {
-    responses['post-img'] = managedPromise()
-    const imgId = counter++
+    const reqId = reqIdCounter++
+    responses['post-img'].set(reqId, managedPromise())
+    const imgId = imgIdCounter++
     debug?.(`New image. ID = ${imgId}. Src:`, img)
     imgIDs.set(img, imgId)
-    const msg: PostImage = { img, imgId, action: 'post-img' }
+    const msg: PostImage = { img, imgId, reqId, action: 'post-img' }
     postMessage(msg)
-    const succeeded = await responses['post-img']
+    const succeeded = await responses['post-img'].get(reqId)
+    responses['post-img'].delete(reqId)
+    console.assert(succeeded !== undefined, "Logic error. Promise should've been defined")
     debug?.('Post image', succeeded ? 'succeeded' : 'failed')
     if (!succeeded) {
       imgIDs.delete(img)
@@ -116,11 +120,15 @@ export function makeApi(postMessage: (action: Action) => void, log?: Console['de
   }
 
   async function postConfig(imgId: any, config: ExtractConfig) {
-    responses['post-config'] = managedPromise()
+    const reqId = reqIdCounter++
+    responses['post-config'].set(reqId, managedPromise())
     debug?.('New config for', imgId, 'Config:', config)
-    const msg: PostConfig = { imgId, config, action: 'post-config' }
+    const msg: PostConfig = { imgId, config, reqId, action: 'post-config' }
     postMessage(msg)
-    await responses['post-config']
+    const promise = responses['post-config'].get(reqId)
+    console.assert(promise !== undefined, "Logic error. Promise should've been defined")
+    await promise
+    responses['post-config'].delete(reqId)
     configsCache.set(imgId, config)
   }
 
@@ -134,18 +142,21 @@ export function makeApi(postMessage: (action: Action) => void, log?: Console['de
         await postConfig(imgId, config)
     },
     async extract(img, idx, config) {
-      responses['extract-box'] = managedPromise()
+      const reqId = reqIdCounter++
+      responses['extract-box'].set(reqId, managedPromise())
       const imgId = imgIDs.get(img) ?? await postNewImg(img)
       if (imgId === null)
         return null
       if (configsCache.get(imgId) !== config)
         await postConfig(imgId, config)
       debug?.('Extracting box', idx, 'from image', imgId)
-      const msg: Extract = { imgId, idx, action: 'extract-box' }
+      const msg: Extract = { imgId, idx, reqId, action: 'extract-box' }
       postMessage(msg)
-      const result = await responses['extract-box']
+      const result = await responses['extract-box'].get(reqId)
+      console.assert(result !== undefined, "Logic error. Promise should've been defined")
+      responses['extract-box'].delete(reqId)
       debug?.('Extracted box', idx, 'from image', imgId)
-      return result
+      return result ?? null
     }
   }
 

@@ -1,3 +1,5 @@
+default:
+  @just --list
 
 # Deploy 'demo' into GitHub Pages
 deploy-demo:

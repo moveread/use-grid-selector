@@ -86,14 +86,14 @@ export function makeApi(cv: Cv, log?: Console['debug']): WorkerAPI {
 
 export function messageHandler({ postImg, postConfig, extract }: WorkerAPI) {
   async function handle(data: Action): Promise<Response> {
-    const { action } = data
+    const { action, reqId } = data
     switch (action) {
       case 'post-img':
-        return { action, value: await postImg(data) }
+        return { action, reqId, value: await postImg(data) }
       case 'post-config':
-        return { action, value: postConfig(data) }
+        return { action, reqId, value: postConfig(data) }
       case 'extract-box':
-        return { action, value: await extract(data) }
+        return { action, reqId, value: await extract(data) }
     }
   }
   

@@ -5,8 +5,8 @@ import { useEffect, useRef, useState } from 'react'
 import { managedPromise } from 'promises-tk'
 import { prepareWorker } from 'use-grid-selector/worker'
 
-function* range(from: number, to: number) {
-  for (let i = from; i < to; i++)
+function* range(from: number, to: number, delta = 1) {
+  for (let i = from; i < to; i += delta)
     yield i
 }
 const printVec = ([x, y]: Vec2, precision = 2) => `(${x.toFixed(precision)}, ${y.toFixed(precision)})`
@@ -40,10 +40,12 @@ function App() {
     let results: string[] = []
     await ready.current
     console.time('Extract')
-    for (const i of range(0, 150)) {
-      const blob = await api.extract(src, i, config)
-      if (blob)
-      results.push(URL.createObjectURL(blob))
+    for (const i of range(0, 150, 15)) {
+      await Promise.all([...range(i, i+15)].map(async (i) => {
+        const blob = await api.extract(src, i, config)
+        if (blob)
+          results.push(URL.createObjectURL(blob))
+      }))
       const mod = 12
       if (i % mod === mod-1) {
         const newResults = [...results]
